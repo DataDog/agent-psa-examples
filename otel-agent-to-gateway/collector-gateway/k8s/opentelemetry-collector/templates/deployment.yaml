@@ -1,0 +1,97 @@
+---
+# Source: opentelemetry-collector/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collector-gw-opentelemetry-collector
+  namespace: demo-zapus
+  labels:
+    helm.sh/chart: opentelemetry-collector-0.108.0
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: collector-gw
+    app.kubernetes.io/version: "0.111.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opentelemetry-collector
+      app.kubernetes.io/instance: collector-gw
+      component: standalone-collector
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/config: cff46158a2a434e278ac177167f83fd0ac5ff85caa7cca705cb2e13a3d7a93d2
+      labels:
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/instance: collector-gw
+        component: standalone-collector
+    spec:
+      serviceAccountName: collector-gw-opentelemetry-collector
+      securityContext:
+        {}
+      containers:
+        - name: opentelemetry-collector
+          command:
+            - /otelcol-k8s
+          args:
+            - --config=/conf/relay.yaml
+          securityContext:
+            {}
+          image: "otel/opentelemetry-collector-k8s:0.104.0"
+          imagePullPolicy: Always
+          ports:
+            - name: jaeger-compact
+              containerPort: 6831
+              protocol: UDP
+            - name: jaeger-grpc
+              containerPort: 14250
+              protocol: TCP
+            - name: jaeger-thrift
+              containerPort: 14268
+              protocol: TCP
+            - name: otlp
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+            - name: zipkin
+              containerPort: 9411
+              protocol: TCP
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: GOMEMLIMIT
+              value: "819MiB"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+          volumeMounts:
+            - mountPath: /conf
+              name: opentelemetry-collector-configmap
+      volumes:
+        - name: opentelemetry-collector-configmap
+          configMap:
+            name: collector-gw-opentelemetry-collector
+            items:
+              - key: relay
+                path: relay.yaml
+      nodeSelector:
+        alpha.eksctl.io/nodegroup-name: mng-demo-zapus
+      hostNetwork: false

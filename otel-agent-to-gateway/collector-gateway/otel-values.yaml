@@ -1,0 +1,16 @@
+mode: deployment
+
+image:
+  repository: "otel/opentelemetry-collector-k8s"
+  pullPolicy: Always
+  tag: "0.104.0"
+
+command:
+  name: "otelcol-k8s"
+
+replicaCount: 3
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
