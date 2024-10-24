@@ -18,4 +18,31 @@ helm template collector-gw open-telemetry/opentelemetry-collector \
   --output-dir ./k8s
 ```
 
+3. Deploy Demo app:
+To install:
+```shell
+helm upgrade -i calendar-hippo ./deploys/calendar/ \
+  --namespace calendar-hippo \
+  --set image.repository=datadog/opentelemetry-examples \
+  --set image.tag=calendar-java-20240916 \
+  --set replicaCount=2 \
+  --set resources.requests.cpu=200m \
+  --set resources.requests.memory=500M \
+  --set nodeSelector."alpha\\.eksctl\\.io/nodegroup-name"=mng-calendar-hippo
+```
+
+Generate manifest:
+```shell
+helm template calendar-hippo ./deploys/calendar/ \
+  --namespace calendar-hippo \
+  --set image.repository=datadog/opentelemetry-examples \
+  --set image.tag=calendar-java-20240916 \
+  --set replicaCount=2 \
+  --set resources.requests.cpu=200m \
+  --set resources.requests.memory=500M \
+  --set nodeSelector."alpha\\.eksctl\\.io/nodegroup-name"=mng-calendar-hippo \
+  --output-dir ../../../../../agent-psa-examples/otel-agent-to-gateway/k8s
+```
+
+4. 
 
