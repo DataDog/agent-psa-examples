@@ -1,0 +1,83 @@
+---
+# Source: datadog/templates/rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  name: agent-hippo-datadog
+  namespace: calendar-hippo
+  labels:
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7" # end range $role := .Values.datadog.secretBackend.roles
+---
+# Source: datadog/templates/rbac.yaml
+apiVersion: "rbac.authorization.k8s.io/v1"
+kind: ClusterRole
+metadata:
+  name: agent-hippo-datadog
+  labels:
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+rules:
+- nonResourceURLs:
+  - "/metrics"
+  - "/metrics/slis"
+  verbs:
+  - get
+- apiGroups:  # Kubelet connectivity
+  - ""
+  resources:
+  - nodes/metrics
+  - nodes/spec
+  - nodes/proxy
+  - nodes/stats
+  verbs:
+  - get
+- apiGroups:  # leader election check
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - get
+- apiGroups:
+  - "security.openshift.io"
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+  resourceNames:
+  - agent-hippo-datadog
+  - hostaccess
+  - privileged
+- apiGroups:  # leader election check
+  - "coordination.k8s.io"
+  resources:
+  - leases
+  verbs:
+  - get
+---
+# Source: datadog/templates/rbac.yaml
+apiVersion: "rbac.authorization.k8s.io/v1"
+kind: ClusterRoleBinding
+metadata:
+  name: agent-hippo-datadog
+  labels:
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agent-hippo-datadog
+subjects:
+  - kind: ServiceAccount
+    name: agent-hippo-datadog
+    namespace: calendar-hippo

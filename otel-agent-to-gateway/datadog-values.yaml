@@ -1,0 +1,43 @@
+agents:
+  image:
+    repository: public.ecr.aws/datadog/agent # gcr.io/datadoghq/agent
+    tag: 7.57.0-v1.0-ot-beta
+    pullPolicy: Always
+    doNotCheckTag: true
+
+datadog:
+  apiKeyExistingSecret: datadog-secret
+  appKeyExistingSecret: datadog-secret
+
+  otelCollector:
+    enabled: true
+    ports:
+      - containerPort: "4317"
+        hostPort: "4317"
+        name: otel-grpc
+      - containerPort: "4318"
+        hostPort: "4318"
+        name: otel-http
+
+  apm:
+    portEnabled: true
+    peer_tags_aggregation: true
+    compute_stats_by_span_kind: true
+    peer_service_aggregation: true
+  orchestratorExplorer:
+    enabled: true
+  processAgent:
+    enabled: true
+    processCollection: true
+  networkMonitoring:
+    enabled: true
+
+  kubelet:
+    tlsVerify: false
+
+  podLabelsAsTags:
+    app: kube_app
+    release: helm_release
+
+remoteConfiguration:
+  enabled: true

@@ -1,0 +1,17 @@
+---
+# Source: datadog/templates/kpi-telemetry-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-hippo-datadog-kpi-telemetry-configmap
+  namespace: calendar-hippo
+  labels:
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+data:
+  install_type: k8s_manual
+  install_id: "aae42d0e-3f29-4fe6-862d-9d3f982a6fe3"
+  install_time: "1730334288"

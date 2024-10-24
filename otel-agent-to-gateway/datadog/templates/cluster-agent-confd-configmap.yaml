@@ -1,0 +1,52 @@
+---
+# Source: datadog/templates/cluster-agent-confd-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-hippo-datadog-cluster-agent-confd
+  namespace: calendar-hippo
+  labels:
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+  annotations:
+    checksum/confd-config: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+data:
+  kubernetes_state_core.yaml.default: |-
+    init_config:
+    instances:
+      - collectors:
+        - secrets
+        - configmaps
+        - nodes
+        - pods
+        - services
+        - resourcequotas
+        - replicationcontrollers
+        - limitranges
+        - persistentvolumeclaims
+        - persistentvolumes
+        - namespaces
+        - endpoints
+        - daemonsets
+        - deployments
+        - replicasets
+        - statefulsets
+        - cronjobs
+        - jobs
+        - horizontalpodautoscalers
+        - poddisruptionbudgets
+        - storageclasses
+        - volumeattachments
+        - ingresses
+        labels_as_tags:
+          {}
+        annotations_as_tags:
+          {}
+  kubernetes_apiserver.yaml: |-
+    init_config:
+    instances:
+      - filtering_enabled: false
+        unbundle_events: false

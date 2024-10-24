@@ -1,0 +1,85 @@
+---
+# Source: datadog/templates/agent-services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-hippo-datadog-cluster-agent
+  namespace: calendar-hippo
+  labels:
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+spec:
+  type: ClusterIP
+  selector:
+    app: agent-hippo-datadog-cluster-agent
+  ports:
+  - port: 5005
+    name: agentport
+    protocol: TCP
+---
+# Source: datadog/templates/agent-services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-hippo-datadog-cluster-agent-admission-controller
+  namespace: calendar-hippo
+  labels:
+    app: "agent-hippo-datadog"
+    chart: "datadog-3.77.0"
+    release: "agent-hippo"
+    heritage: "Helm"
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+spec:
+  selector:
+    app: agent-hippo-datadog-cluster-agent
+  ports:
+  - port: 443
+    targetPort: 8000
+    name: datadog-webhook
+    protocol: TCP
+---
+# Source: datadog/templates/agent-services.yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: agent-hippo-datadog
+  namespace: calendar-hippo
+  labels:
+    app: "agent-hippo-datadog"
+    chart: "datadog-3.77.0"
+    release: "agent-hippo"
+    heritage: "Helm"
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+spec:
+  selector:
+    app: agent-hippo-datadog
+  ports:
+    - protocol: UDP
+      port: 8125
+      targetPort: 8125
+      name: dogstatsdport
+    - protocol: TCP
+      port: 8126
+      targetPort: 8126
+      name: traceport
+    - protocol: TCP
+      port: 4317
+      targetPort: 4317
+      name: otel-grpc
+    - protocol: TCP
+      port: 4318
+      targetPort: 4318
+      name: otel-http
+  internalTrafficPolicy: Local

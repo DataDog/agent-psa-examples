@@ -44,5 +44,24 @@ helm template calendar-hippo ./deploys/calendar/ \
   --output-dir ../../../../../agent-psa-examples/otel-agent-to-gateway/k8s
 ```
 
-4. 
+4. Install Datadog Agent with embedded OTel collector
 
+```shell
+helm upgrade -i agent-hippo datadog/datadog \
+  --namespace calendar-hippo \
+  --values datadog-values.yaml \
+  --set-file datadog.otelCollector.config=collector-config.yaml \
+  --set agents.nodeSelector."alpha\\.eksctl\\.io/nodegroup-name"=mng-calendar-hippo
+```
+
+Generate manifest:
+```shell
+helm template agent-hippo datadog/datadog \
+  --namespace calendar-hippo \
+  --values datadog-values.yaml \
+  --set-file datadog.otelCollector.config=collector-config.yaml \
+  --set agents.nodeSelector."alpha\\.eksctl\\.io/nodegroup-name"=mng-calendar-hippo \
+  --output-dir ./k8s
+```
+
+5. Go to app.datadoghq.com and verify telemetry data.
