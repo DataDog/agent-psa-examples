@@ -1,0 +1,71 @@
+---
+# Source: datadog/templates/otel-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-hippo-datadog-otel-config
+  namespace: calendar-hippo
+  labels:
+    
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+  annotations:
+    checksum/otel-config: f403040e6025b96734be0a558887981234898c3cae7f36887aa7f3f4eefe5ea4
+data: 
+  otel-config.yaml:     |
+        receivers:
+          prometheus:
+            config:
+              scrape_configs:
+                - job_name: "otel-agent"
+                  scrape_interval: 10s
+                  static_configs:
+                    - targets:
+                      - 0.0.0.0:8888
+          otlp:
+            protocols:
+              grpc:
+                endpoint: 0.0.0.0:4317
+              http:
+                endpoint: 0.0.0.0:4318
+        exporters:
+          debug:
+            verbosity: detailed
+          datadog:
+            api:
+              key: ${env:DD_API_KEY}
+        processors:
+          infraattributes:
+            cardinality: 2
+          batch:
+            timeout: 10s
+          memory_limiter:
+            check_interval: 5s
+            limit_percentage: 80
+            spike_limit_percentage: 25
+        connectors:
+          datadog/connector:
+            traces:
+              compute_top_level_by_span_kind: true
+              peer_tags_aggregation: true
+              compute_stats_by_span_kind: true
+        service:
+          telemetry:
+            logs:
+              level: debug
+          pipelines:
+            traces:
+              receivers: [otlp]
+              processors: [memory_limiter, infraattributes, batch]
+              exporters: [debug, datadog, datadog/connector]
+            metrics:
+              receivers: [otlp, datadog/connector, prometheus]
+              processors: [memory_limiter, infraattributes, batch]
+              exporters: [debug, datadog]
+            logs:
+              receivers: [otlp]
+              processors: [memory_limiter, infraattributes, batch]
+              exporters: [debug, datadog]

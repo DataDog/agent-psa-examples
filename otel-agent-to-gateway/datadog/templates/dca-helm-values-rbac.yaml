@@ -1,0 +1,43 @@
+---
+# Source: datadog/templates/dca-helm-values-rbac.yaml
+apiVersion: "rbac.authorization.k8s.io/v1"
+kind: Role
+metadata:
+  labels:
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+  name: agent-hippo-datadog-dca-flare
+  namespace: calendar-hippo
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  verbs:
+  - get
+  - list
+---
+# Source: datadog/templates/dca-helm-values-rbac.yaml
+apiVersion: "rbac.authorization.k8s.io/v1"
+kind: RoleBinding
+metadata:
+  labels:
+    helm.sh/chart: 'datadog-3.77.0'
+    app.kubernetes.io/name: "agent-hippo-datadog"
+    app.kubernetes.io/instance: "agent-hippo"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+  name: agent-hippo-datadog-dca-flare
+  namespace: calendar-hippo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-hippo-datadog-dca-flare
+subjects:
+  - kind: ServiceAccount
+    name: agent-hippo-datadog-cluster-agent
+    namespace: calendar-hippo
