@@ -1,0 +1,22 @@
+---
+# Source: calendar/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: calendar-hippo
+  labels:
+    helm.sh/chart: calendar-0.1.0
+    app.kubernetes.io/name: calendar
+    app.kubernetes.io/instance: calendar-hippo
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: calendar
+    app.kubernetes.io/instance: calendar-hippo

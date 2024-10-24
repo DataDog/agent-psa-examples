@@ -1,0 +1,21 @@
+---
+# Source: calendar/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "calendar-hippo-test-connection"
+  labels:
+    helm.sh/chart: calendar-0.1.0
+    app.kubernetes.io/name: calendar
+    app.kubernetes.io/instance: calendar-hippo
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['calendar-hippo:9090']
+  restartPolicy: Never
