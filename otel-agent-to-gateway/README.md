@@ -65,3 +65,31 @@ helm template agent-hippo datadog/datadog \
 ```
 
 5. Go to app.datadoghq.com and verify telemetry data.
+
+6. Build BYOC collector
+
+Download BYOC manifest file
+```shell
+curl -o manifest.yaml https://raw.githubusercontent.com/DataDog/datadog-agent/main/comp/otelcol/collector-contrib/impl/manifest.yaml
+```
+
+Download BYOC Docker file
+```shell
+curl -o Dockerfile.byoc https://raw.githubusercontent.com/DataDog/datadog-agent/main/Dockerfiles/agent-ot/Dockerfile.agent-otel
+```
+
+Build BYOC image
+```shell
+docker build --file Dockerfile.byoc --tag agent-byoc:0.104.0 .
+```
+
+Publish BYOC image to the registry:
+```shell
+docker tag agent-byoc:0.104.0 601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0
+docker push 601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0
+```
+
+7. Use BYOC Agent image
+
+
+
