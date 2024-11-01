@@ -36,7 +36,7 @@ spec:
         
       name: agent-hippo-datadog-cluster-agent
       annotations:
-        checksum/clusteragent_token: a7e0d8000d91d82a5b0b535dc67b2018cdc4026e8a46c97a1c637cbcbeecd7dd
+        checksum/clusteragent_token: 3074453f3c48e61eec45cc4656e7f543f892b06fff769830939a9a7725fdee8a
         checksum/clusteragent-configmap: fdfdbee4408673afdfbb48b047b4d7bc227711cdfa365d1de197c7a0852d95cb
         checksum/install_info: f403040e6025b96734be0a558887981234898c3cae7f36887aa7f3f4eefe5ea4
     spec:
