@@ -99,3 +99,28 @@ agents:
     tag: 0.104.0
 ```
 
+8. Connect Agent with OTel collector to `collector-contrib` deployed as a gateway
+
+```yaml
+# collecotr-config.yaml
+...
+exporters:
+  ...
+  loadbalancing:
+    protocol:
+      otlp:
+        tls:
+          insecure: true
+    resolver:
+      dns:
+        hostname: collector-gw-opentelemetry-collector.demo-zapus.svc.cluster.local
+
+  pipelines:
+    traces:
+      ...
+      exporters: [debug, datadog, datadog/connector, loadbalancing]
+    logs:
+      ...
+      exporters: [debug, datadog, loadbalancing]
+
+```

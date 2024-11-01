@@ -19,6 +19,14 @@ exporters:
   datadog:
     api:
       key: ${env:DD_API_KEY}
+  loadbalancing:
+    protocol:
+      otlp:
+        tls:
+          insecure: true
+    resolver:
+      dns:
+        hostname: collector-gw-opentelemetry-collector.demo-zapus.svc.cluster.local
 processors:
   infraattributes:
     cardinality: 2
@@ -42,7 +50,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, infraattributes, batch]
-      exporters: [debug, datadog, datadog/connector]
+      exporters: [debug, datadog, datadog/connector, loadbalancing]
     metrics:
       receivers: [otlp, datadog/connector, prometheus]
       processors: [memory_limiter, infraattributes, batch]
@@ -50,4 +58,4 @@ service:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, infraattributes, batch]
-      exporters: [debug, datadog]
+      exporters: [debug, datadog, loadbalancing]

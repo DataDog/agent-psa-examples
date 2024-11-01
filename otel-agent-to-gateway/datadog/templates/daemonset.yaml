@@ -30,12 +30,12 @@ spec:
         
       name: agent-hippo-datadog
       annotations:
-        checksum/clusteragent_token: 8dc8874df744e09b58899dee8bc6e5974cad34a5bee3c183dd2abc44eeb5206c
+        checksum/clusteragent_token: 18b555fa742ca7fb4d2185c7b0046620e772cdb7e63a777a136343ad788fe9cb
         checksum/install_info: f403040e6025b96734be0a558887981234898c3cae7f36887aa7f3f4eefe5ea4
         checksum/autoconf-config: 74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
         checksum/confd-config: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
         checksum/checksd-config: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
-        checksum/otel-config: 7798876d1746535a686d817c32e46119a6a675d64925d83de16a6085c9a3d81f
+        checksum/otel-config: c4f296eda2cfc807e216e8878fab04af70f99c281308b981ff39c987bda761ab
         container.apparmor.security.beta.kubernetes.io/system-probe: unconfined
     spec:
       
