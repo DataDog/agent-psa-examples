@@ -91,5 +91,11 @@ docker push 601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0
 
 7. Use BYOC Agent image
 
-
+```yaml
+# datadog-values.yaml
+agents:
+  image:
+    repository: 601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc
+    tag: 0.104.0
+```
 

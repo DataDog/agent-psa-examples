@@ -30,7 +30,7 @@ spec:
         
       name: agent-hippo-datadog
       annotations:
-        checksum/clusteragent_token: 6e1abb21d5d6b5a2d84767fe451f7b354332e31442b975e3f7b4cf5a76f158f9
+        checksum/clusteragent_token: 8dc8874df744e09b58899dee8bc6e5974cad34a5bee3c183dd2abc44eeb5206c
         checksum/install_info: f403040e6025b96734be0a558887981234898c3cae7f36887aa7f3f4eefe5ea4
         checksum/autoconf-config: 74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
         checksum/confd-config: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
@@ -44,7 +44,7 @@ spec:
       hostPID: true
       containers:
       - name: agent
-        image: "public.ecr.aws/datadog/agent:7.57.0-v1.0-ot-beta"
+        image: "601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0"
         imagePullPolicy: Always
         command: ["agent", "run"]
         
@@ -218,7 +218,7 @@ spec:
           successThreshold: 1
           timeoutSeconds: 5
       - name: trace-agent
-        image: "public.ecr.aws/datadog/agent:7.57.0-v1.0-ot-beta"
+        image: "601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0"
         imagePullPolicy: Always
         command: ["trace-agent", "-config=/etc/datadog-agent/datadog.yaml"]  
         resources:
@@ -330,7 +330,7 @@ spec:
             port: 8126
           timeoutSeconds: 5
       - name: process-agent
-        image: "public.ecr.aws/datadog/agent:7.57.0-v1.0-ot-beta"
+        image: "601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0"
         imagePullPolicy: Always
         command: ["process-agent", "--config=/etc/datadog-agent/datadog.yaml"]  
         resources:
@@ -438,7 +438,7 @@ spec:
             subPath: system-probe.yaml
             readOnly: true
       - name: system-probe
-        image: "public.ecr.aws/datadog/agent:7.57.0-v1.0-ot-beta"
+        image: "601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0"
         imagePullPolicy: Always
         
         securityContext:
@@ -533,7 +533,7 @@ spec:
             mountPath: /host/etc/lsb-release
             readOnly: true
       - name: otel-agent
-        image: "public.ecr.aws/datadog/agent:7.57.0-v1.0-ot-beta"
+        image: "601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0"
         imagePullPolicy: Always
         command: ["otel-agent", "--config=/etc/otel-agent/otel-config.yaml"]  
         resources:
@@ -624,7 +624,7 @@ spec:
           
       - name: init-volume
         
-        image: "public.ecr.aws/datadog/agent:7.57.0-v1.0-ot-beta"
+        image: "601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0"
         imagePullPolicy: Always
         command: ["bash", "-c"]
         args:
@@ -637,7 +637,7 @@ spec:
           {}
       - name: init-config
         
-        image: "public.ecr.aws/datadog/agent:7.57.0-v1.0-ot-beta"
+        image: "601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0"
         imagePullPolicy: Always
         command:
           - bash
@@ -697,7 +697,7 @@ spec:
           
       - name: seccomp-setup
         
-        image: "public.ecr.aws/datadog/agent:7.57.0-v1.0-ot-beta"
+        image: "601427279990.dkr.ecr.us-east-2.amazonaws.com/krlv/agent-byoc:0.104.0"
         imagePullPolicy: Always
         command:
         - cp
