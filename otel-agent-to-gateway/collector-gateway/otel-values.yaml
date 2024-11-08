@@ -1,7 +1,7 @@
 mode: deployment
 
 image:
-  repository: "otel/opentelemetry-collector-k8s"
+  repository: "otel/opentelemetry-collector-contrib"
   pullPolicy: Always
   tag: "0.104.0"
 
@@ -11,6 +11,96 @@ command:
 replicaCount: 3
 
 resources:
+  requests:
+    cpu: 100m
+    memory: 1Gi
   limits:
     cpu: 1
     memory: 1Gi
+
+config:
+  receivers:
+    prometheus:
+      config:
+        scrape_configs:
+        - job_name: 'otelcol'
+          scrape_interval: 10s
+          static_configs:
+          - targets:
+              - ${env:MY_POD_IP}:8888
+  processors:
+    memory_limiter:
+      check_interval: 5s
+      limit_mib: 1000
+    batch:
+      {}
+    tail_sampling:
+      decision_wait: 10s
+      num_traces: 100
+      expected_new_traces_per_sec: 10
+      policies: [
+        {
+          name: composite-sampling-policy,
+          type: composite,
+          composite: {
+            max_total_spans_per_second: 1000,
+            policy_order: [ sampling-policy-on-calendar-services, sampling-policy-on-lobster-services, sampling-policy-on-traces-all ],
+            composite_sub_policy: [
+              {
+                name: sampling-policy-on-calendar-services,
+                type: string_attribute,
+                string_attribute: { key: service.name, values: [ calendar-gorilla, calendar-hippo ] }
+              },
+              {
+                name: sampling-policy-on-lobster-services,
+                type: string_attribute,
+                string_attribute: { key: service.name, values: [ calendar-lobster, calculator-lobster ] }
+              },
+              {
+                name: sampling-policy-on-traces-all,
+                type: always_sample
+              }
+            ],
+            rate_allocation: [
+              {
+                policy: sampling-policy-on-calendar-services,
+                percent: 50
+              },
+              {
+                policy: sampling-policy-on-lobster-services,
+                percent: 50
+              }
+            ]
+          }
+        }
+      ]
+  exporters:
+    debug:
+      verbosity: detailed
+    datadog:
+      api:
+        key: ${env:DD_API_KEY}
+  service:
+    telemetry:
+      logs:
+        level: debug
+    pipelines:
+      metrics:
+        receivers: [ prometheus, otlp ]
+        processors: [ memory_limiter, batch ]
+        exporters: [ debug, datadog ]
+      traces:
+        receivers: [ otlp ]
+        processors: [ memory_limiter, tail_sampling, batch]
+        exporters: [ debug, datadog ]
+      logs:
+        receivers: [ otlp ]
+        processors: [ memory_limiter, batch]
+        exporters: [ debug, datadog ]
+
+extraEnvs:
+  - name: DD_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: datadog-secret
+        key: api-key
