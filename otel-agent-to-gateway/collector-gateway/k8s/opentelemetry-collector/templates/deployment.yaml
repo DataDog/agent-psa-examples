@@ -24,7 +24,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: cff46158a2a434e278ac177167f83fd0ac5ff85caa7cca705cb2e13a3d7a93d2
+        checksum/config: 1807473632588edaa1148d9d8625f70e8c54c55da0f577394145845daae9f469
       labels:
         app.kubernetes.io/name: opentelemetry-collector
         app.kubernetes.io/instance: collector-gw
@@ -36,12 +36,12 @@ spec:
       containers:
         - name: opentelemetry-collector
           command:
-            - /otelcol-k8s
+            - /otelcol-contrib
           args:
             - --config=/conf/relay.yaml
           securityContext:
             {}
-          image: "otel/opentelemetry-collector-k8s:0.104.0"
+          image: "otel/opentelemetry-collector-contrib:0.104.0"
           imagePullPolicy: Always
           ports:
             - name: jaeger-compact
@@ -70,6 +70,11 @@ spec:
                   fieldPath: status.podIP
             - name: GOMEMLIMIT
               value: "819MiB"
+            - name: DD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api-key
+                  name: datadog-secret
           livenessProbe:
             httpGet:
               path: /
@@ -81,6 +86,9 @@ spec:
           resources:
             limits:
               cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 100m
               memory: 1Gi
           volumeMounts:
             - mountPath: /conf

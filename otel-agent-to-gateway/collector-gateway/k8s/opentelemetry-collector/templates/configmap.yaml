@@ -11,10 +11,15 @@ metadata:
     app.kubernetes.io/instance: collector-gw
     app.kubernetes.io/version: "0.111.0"
     app.kubernetes.io/managed-by: Helm
+
 data:
   relay: |
     exporters:
-      debug: {}
+      datadog:
+        api:
+          key: ${env:DD_API_KEY}
+      debug:
+        verbosity: detailed
     extensions:
       health_check:
         endpoint: ${env:MY_POD_IP}:13133
@@ -22,8 +27,44 @@ data:
       batch: {}
       memory_limiter:
         check_interval: 5s
+        limit_mib: 1000
         limit_percentage: 80
         spike_limit_percentage: 25
+      tail_sampling:
+        decision_wait: 10s
+        expected_new_traces_per_sec: 10
+        num_traces: 100
+        policies:
+        - composite:
+            composite_sub_policy:
+            - name: sampling-policy-on-calendar-services
+              string_attribute:
+                key: service.name
+                values:
+                - calendar-gorilla
+                - calendar-hippo
+              type: string_attribute
+            - name: sampling-policy-on-lobster-services
+              string_attribute:
+                key: service.name
+                values:
+                - calendar-lobster
+                - calculator-lobster
+              type: string_attribute
+            - name: sampling-policy-on-traces-all
+              type: always_sample
+            max_total_spans_per_second: 1000
+            policy_order:
+            - sampling-policy-on-calendar-services
+            - sampling-policy-on-lobster-services
+            - sampling-policy-on-traces-all
+            rate_allocation:
+            - percent: 50
+              policy: sampling-policy-on-calendar-services
+            - percent: 50
+              policy: sampling-policy-on-lobster-services
+          name: composite-sampling-policy
+          type: composite
     receivers:
       jaeger:
         protocols:
@@ -42,7 +83,7 @@ data:
       prometheus:
         config:
           scrape_configs:
-          - job_name: opentelemetry-collector
+          - job_name: otelcol
             scrape_interval: 10s
             static_configs:
             - targets:
@@ -56,6 +97,7 @@ data:
         logs:
           exporters:
           - debug
+          - datadog
           processors:
           - memory_limiter
           - batch
@@ -64,22 +106,25 @@ data:
         metrics:
           exporters:
           - debug
+          - datadog
           processors:
           - memory_limiter
           - batch
           receivers:
-          - otlp
           - prometheus
+          - otlp
         traces:
           exporters:
           - debug
+          - datadog
           processors:
           - memory_limiter
+          - tail_sampling
           - batch
           receivers:
           - otlp
-          - jaeger
-          - zipkin
       telemetry:
+        logs:
+          level: debug
         metrics:
           address: ${env:MY_POD_IP}:8888
