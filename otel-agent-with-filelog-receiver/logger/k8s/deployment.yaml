@@ -1,0 +1,30 @@
+---
+# Source: calendar/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logger
+  namespace: staging
+  labels:
+    app.kubernetes.io/name: logger
+    app.kubernetes.io/instance: logger-staging
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: logger
+      app.kubernetes.io/instance: logger-staging
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: logger
+        app.kubernetes.io/instance: logger-staging
+    spec:
+      containers:
+        - name: logger
+          image: "busybox:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "sh"
+            - "-c"
+            - "while true; do echo $(date); sleep 1; done"
