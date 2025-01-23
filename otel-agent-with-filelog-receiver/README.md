@@ -49,3 +49,33 @@ as a demo app. To install it run:
 kubectl apply -f ./logger/k8s/deployment.yaml
 ```
 
+### 5. Mount containers logs volumes
+
+Disable logging in Datadog agent, and mount `/var/log/pods` and `/var/lib/docker/containers` volumes to all agents' containers:
+
+```yaml
+# datadog-values.yaml
+agents:
+  ...
+  volumes:
+    - name: varlogpods
+      hostPath:
+        path: /var/log/pods
+    - name: varlibdockercontainers
+      hostPath:
+        path: /var/lib/docker/containers
+
+  volumeMounts:
+    - name: varlogpods
+      mountPath: /var/log/pods
+      readOnly: true
+    - name: varlibdockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+
+datadog:
+  ...
+  logs:
+    enabled: false
+```
+

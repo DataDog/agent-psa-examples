@@ -5,6 +5,22 @@ agents:
     pullPolicy: Always
     doNotCheckTag: true
 
+  volumes:
+    - name: varlogpods
+      hostPath:
+        path: /var/log/pods
+    - name: varlibdockercontainers
+      hostPath:
+        path: /var/lib/docker/containers
+
+  volumeMounts:
+    - name: varlogpods
+      mountPath: /var/log/pods
+      readOnly: true
+    - name: varlibdockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+
 datadog:
   site: datadoghq.com
   apiKeyExistingSecret: datadog-secret
@@ -34,8 +50,7 @@ datadog:
   networkMonitoring:
     enabled: true
   logs:
-    enabled: true
-    containerCollectAll: true
+    enabled: false
   kubelet:
     tlsVerify: false
   podLabelsAsTags:
