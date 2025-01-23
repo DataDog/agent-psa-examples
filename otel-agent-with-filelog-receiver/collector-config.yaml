@@ -6,13 +6,26 @@ receivers:
           scrape_interval: 10s
           static_configs:
             - targets:
-              - 0.0.0.0:8888
+                - 0.0.0.0:8888
   otlp:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+  filelog:
+    exclude: []
+    include:
+      - /var/log/pods/*/*/*.log
+    include_file_name: false
+    include_file_path: true
+    operators:
+      - id: container-parser
+        max_log_size: 102400
+        type: container
+    retry_on_failure:
+      enabled: true
+    start_at: end
 exporters:
   debug:
     verbosity: detailed
@@ -49,6 +62,6 @@ service:
       processors: [memory_limiter, infraattributes, batch]
       exporters: [debug, datadog]
     logs:
-      receivers: [otlp]
+      receivers: [filelog, otlp]
       processors: [memory_limiter, infraattributes, batch]
       exporters: [debug, datadog]
