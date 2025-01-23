@@ -79,3 +79,36 @@ datadog:
     enabled: false
 ```
 
+### 6. Add `filelog` receiver to OpenTelemetry Collector config
+
+Define `filelog` reciever in the OTel collector config as follows:
+
+```yaml
+# collector-config.yaml
+receivers:
+  ...
+  filelog:
+    exclude: []
+    include:
+      - /var/log/pods/*/*/*.log
+    include_file_name: false
+    include_file_path: true
+    operators:
+      - id: container-parser
+        max_log_size: 102400
+        type: container
+    retry_on_failure:
+      enabled: true
+    start_at: end
+...
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    ...
+    logs:
+      receivers: [filelog, otlp]
+      processors: [memory_limiter, infraattributes, batch]
+      exporters: [debug, datadog]
+```
