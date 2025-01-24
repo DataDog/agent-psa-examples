@@ -113,3 +113,28 @@ service:
       processors: [memory_limiter, infraattributes, batch]
       exporters: [debug, datadog]
 ```
+
+### 7. (Optional) Exclude `otel-agent` container logs
+
+To prevent logs looping, exclude logs from the collector's containers:
+
+```yaml
+# collector-config.yaml
+receivers:
+  ...
+  filelog:
+    # exclude logs from all containers named otel-agent
+    exclude:
+      - /var/log/pods/*/otel-agent/*.log
+    include:
+      - /var/log/pods/*/*/*.log
+    include_file_name: false
+    include_file_path: true
+    operators:
+      - id: container-parser
+        max_log_size: 102400
+        type: container
+    retry_on_failure:
+      enabled: true
+    start_at: end
+```
