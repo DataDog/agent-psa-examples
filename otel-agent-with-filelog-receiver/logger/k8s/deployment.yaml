@@ -27,4 +27,4 @@ spec:
           command:
             - "sh"
             - "-c"
-            - "while true; do echo $(date); sleep 1; done"
+            - "while true; do echo Container $HOSTNAME date $(date); sleep 1; done"
