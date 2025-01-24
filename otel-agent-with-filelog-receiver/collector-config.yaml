@@ -14,7 +14,8 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
   filelog:
-    exclude: []
+    exclude:
+      - /var/log/pods/*/otel-agent/*.log
     include:
       - /var/log/pods/*/*/*.log
     include_file_name: false
