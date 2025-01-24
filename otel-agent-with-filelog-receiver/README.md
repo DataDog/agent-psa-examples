@@ -114,6 +114,10 @@ service:
       exporters: [debug, datadog]
 ```
 
+Check [Logs Explorer](https://app.datadoghq.com/logs) to confirm containers logs are delivered and indexed:
+
+![Container logs in Logs Explorer](./assets/2025-01-23_23-49-16.png)
+
 ### 7. (Optional) Exclude `otel-agent` container logs
 
 To prevent logs looping, exclude logs from the collector's containers:
