@@ -1,0 +1,43 @@
+---
+# Source: datadog/templates/dca-helm-values-rbac.yaml
+apiVersion: "rbac.authorization.k8s.io/v1"
+kind: Role
+metadata:
+  labels:
+    helm.sh/chart: 'datadog-3.88.1'
+    app.kubernetes.io/name: "otel-agent-datadog"
+    app.kubernetes.io/instance: "otel-agent"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+  name: otel-agent-datadog-dca-flare
+  namespace: demo
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  verbs:
+  - get
+  - list
+---
+# Source: datadog/templates/dca-helm-values-rbac.yaml
+apiVersion: "rbac.authorization.k8s.io/v1"
+kind: RoleBinding
+metadata:
+  labels:
+    helm.sh/chart: 'datadog-3.88.1'
+    app.kubernetes.io/name: "otel-agent-datadog"
+    app.kubernetes.io/instance: "otel-agent"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+  name: otel-agent-datadog-dca-flare
+  namespace: demo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: otel-agent-datadog-dca-flare
+subjects:
+  - kind: ServiceAccount
+    name: otel-agent-datadog-cluster-agent
+    namespace: demo
