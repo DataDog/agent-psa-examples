@@ -1,0 +1,85 @@
+---
+# Source: datadog/templates/agent-services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-agent-datadog-cluster-agent
+  namespace: demo
+  labels:
+    helm.sh/chart: 'datadog-3.88.1'
+    app.kubernetes.io/name: "otel-agent-datadog"
+    app.kubernetes.io/instance: "otel-agent"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+spec:
+  type: ClusterIP
+  selector:
+    app: otel-agent-datadog-cluster-agent
+  ports:
+  - port: 5005
+    name: agentport
+    protocol: TCP
+---
+# Source: datadog/templates/agent-services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-agent-datadog-cluster-agent-admission-controller
+  namespace: demo
+  labels:
+    app: "otel-agent-datadog"
+    chart: "datadog-3.88.1"
+    release: "otel-agent"
+    heritage: "Helm"
+    helm.sh/chart: 'datadog-3.88.1'
+    app.kubernetes.io/name: "otel-agent-datadog"
+    app.kubernetes.io/instance: "otel-agent"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+spec:
+  selector:
+    app: otel-agent-datadog-cluster-agent
+  ports:
+  - port: 443
+    targetPort: 8000
+    name: datadog-webhook
+    protocol: TCP
+---
+# Source: datadog/templates/agent-services.yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: otel-agent-datadog
+  namespace: demo
+  labels:
+    app: "otel-agent-datadog"
+    chart: "datadog-3.88.1"
+    release: "otel-agent"
+    heritage: "Helm"
+    helm.sh/chart: 'datadog-3.88.1'
+    app.kubernetes.io/name: "otel-agent-datadog"
+    app.kubernetes.io/instance: "otel-agent"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+spec:
+  selector:
+    app: otel-agent-datadog
+  ports:
+    - protocol: UDP
+      port: 8125
+      targetPort: 8125
+      name: dogstatsdport
+    - protocol: TCP
+      port: 8126
+      targetPort: 8126
+      name: traceport
+    - protocol: TCP
+      port: 4317
+      targetPort: 4317
+      name: otel-grpc
+    - protocol: TCP
+      port: 4318
+      targetPort: 4318
+      name: otel-http
+  internalTrafficPolicy: Local

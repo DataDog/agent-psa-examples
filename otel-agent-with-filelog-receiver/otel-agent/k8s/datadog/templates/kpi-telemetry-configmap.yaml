@@ -1,0 +1,17 @@
+---
+# Source: datadog/templates/kpi-telemetry-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-agent-datadog-kpi-telemetry-configmap
+  namespace: demo
+  labels:
+    helm.sh/chart: 'datadog-3.88.1'
+    app.kubernetes.io/name: "otel-agent-datadog"
+    app.kubernetes.io/instance: "otel-agent"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "7"
+data:
+  install_type: k8s_manual
+  install_id: "bcf8195a-e63d-4fd1-9ad6-49564a29be52"
+  install_time: "1738024274"
