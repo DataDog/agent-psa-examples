@@ -1,0 +1,30 @@
+---
+# Source: calendar/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ddlogger
+  namespace: demo
+  labels:
+    app.kubernetes.io/name: ddlogger
+    app.kubernetes.io/instance: ddlogger-staging
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ddlogger
+      app.kubernetes.io/instance: ddlogger-staging
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ddlogger
+        app.kubernetes.io/instance: ddlogger-staging
+    spec:
+      containers:
+        - name: ddlogger
+          image: "busybox:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "sh"
+            - "-c"
+            - "echoerr() { echo \"$@\" 1>&2; }; while true; do if [ $(( $RANDOM % 2 )) -eq 0 ]; then echo INFO Container $HOSTNAME date $(date); else echoerr ERROR Container $HOSTNAME date $(date); fi; sleep 1; done"

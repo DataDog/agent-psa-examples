@@ -675,6 +675,19 @@ spec:
             mountPath: /host/var/run
             mountPropagation: None
             readOnly: true
+
+          - name: logpodpath
+            mountPath: /var/log/pods
+            mountPropagation: None
+            readOnly: true
+          - name: logscontainerspath
+            mountPath: /var/log/containers
+            mountPropagation: None
+            readOnly: true
+          - name: logdockercontainerpath
+            mountPath: /var/lib/docker/containers
+            mountPropagation: None
+            readOnly: true
           
       initContainers:
       - name: init-volume  
