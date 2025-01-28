@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: logger
-  namespace: staging
+  namespace: demo
   labels:
     app.kubernetes.io/name: logger
     app.kubernetes.io/instance: logger-staging
