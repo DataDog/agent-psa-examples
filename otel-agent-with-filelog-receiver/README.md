@@ -58,20 +58,18 @@ kubectl apply -f ./logger/k8s/deployment.yaml
 # datadog-values.yaml
 agents:
   ...
-  volumes:
-    - name: varlogpods
-      hostPath:
-        path: /var/log/pods
-    - name: varlibdockercontainers
-      hostPath:
-        path: /var/lib/docker/containers
-
   volumeMounts:
-    - name: varlogpods
+    - name: logpodpath
       mountPath: /var/log/pods
+      mountPropagation: None
       readOnly: true
-    - name: varlibdockercontainers
+    - name: logscontainerspath
+      mountPath: /var/log/containers
+      mountPropagation: None
+      readOnly: true
+    - name: logdockercontainerpath
       mountPath: /var/lib/docker/containers
+      mountPropagation: None
       readOnly: true
 
 datadog:
@@ -146,8 +144,6 @@ receivers:
 ## Enable logs collection in the Datadog Agent with Embedded OpenTelemetry Collector
 
 ### 8. Enable logs collection in the Datadog Agent
-
-
 
 ```yaml
 # datadog-values.with-logs.yaml
