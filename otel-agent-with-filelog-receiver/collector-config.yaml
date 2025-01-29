@@ -39,6 +39,14 @@ processors:
     cardinality: 2
   batch:
     timeout: 10s
+  filter/datadog:
+    error_mode: ignore
+    logs:
+      log_record:
+        - 'IsMatch("${env:DD_CLUSTER_NAME}", "infra")'
+        - |
+          resource.attributes["k8s.container.name"] != "logger" and
+          resource.attributes["k8s.container.name"] != "ddlogger"
   memory_limiter:
     check_interval: 5s
     limit_percentage: 80
@@ -64,5 +72,5 @@ service:
       exporters: [debug, datadog]
     logs:
       receivers: [filelog, otlp]
-      processors: [memory_limiter, infraattributes, batch]
+      processors: [memory_limiter, infraattributes, filter/datadog, batch]
       exporters: [debug, datadog]
