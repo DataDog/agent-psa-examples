@@ -25,6 +25,8 @@ datadog:
   appKeyExistingSecret: datadog-secret
   logLevel: info
 
+  clusterName: krlv-opw
+
   otelCollector:
     enabled: true
     ports:
@@ -54,3 +56,12 @@ datadog:
   podLabelsAsTags:
     app: kube_app
     release: helm_release
+
+  env:
+    - name: DD_ENV
+      value: staging
+    - name: K8S_NODE_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: spec.nodeName
