@@ -10,6 +10,9 @@ metadata:
     app.kubernetes.io/instance: calendar
     app.kubernetes.io/version: "1.16.0"
     app.kubernetes.io/managed-by: Helm
+    tags.datadoghq.com/env: demo
+    tags.datadoghq.com/service: calendar
+    tags.datadoghq.com/version: "1.0.0"
 spec:
   replicas: 3
   selector:
@@ -21,6 +24,9 @@ spec:
       labels:
         app.kubernetes.io/name: calendar
         app.kubernetes.io/instance: calendar
+        tags.datadoghq.com/env: demo
+        tags.datadoghq.com/service: calendar
+        tags.datadoghq.com/version: "1.0.0"
     spec:
       securityContext:
         {}
