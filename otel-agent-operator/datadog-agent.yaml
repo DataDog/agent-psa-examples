@@ -77,28 +77,19 @@ spec:
               check_interval: 5s
               limit_percentage: 80
               spike_limit_percentage: 25
-            transform:
-              trace_statements:
-                - context: span
-                  statements:
-                    - set(attributes["operation.name"], name)
           connectors:
             datadog/connector:
-              traces:
-                compute_top_level_by_span_kind: true
-                peer_tags_aggregation: true
-                compute_stats_by_span_kind: true
           service:
             pipelines:
               traces:
                 receivers: [otlp]
-                processors: [memory_limiter, transform, infraattributes, batch]
+                processors: [memory_limiter, infraattributes, batch]
                 exporters: [debug, datadog, datadog/connector]
               metrics:
                 receivers: [otlp, datadog/connector, prometheus]
-                processors: [memory_limiter, transform, infraattributes, batch]
+                processors: [memory_limiter, infraattributes, batch]
                 exporters: [debug, datadog]
               logs:
                 receivers: [otlp]
-                processors: [memory_limiter, transform, infraattributes, batch]
+                processors: [memory_limiter, infraattributes, batch]
                 exporters: [debug, datadog]
