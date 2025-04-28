@@ -6,10 +6,10 @@ automountServiceAccountToken: true
 metadata:
   labels:
     app: "otel-agent-datadog"
-    chart: "datadog-3.88.1"
+    chart: "datadog-3.110.14"
     heritage: "Helm"
     release: "otel-agent"
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -22,7 +22,7 @@ apiVersion: "rbac.authorization.k8s.io/v1"
 kind: ClusterRole
 metadata:
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -232,6 +232,9 @@ rules:
 - apiGroups: ["apps"]
   resources: ["statefulsets", "replicasets", "deployments", "daemonsets"]
   verbs: ["get"]
+- apiGroups: [""]
+  resources: ["replicationcontrollers"]
+  verbs: ["get"]
 - apiGroups:
   - "security.openshift.io"
   resources:
@@ -241,13 +244,21 @@ rules:
   resourceNames:
   - otel-agent-datadog-cluster-agent
   - hostnetwork
+- apiGroups:
+  - "policy"
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - get
+  - list
+  - watch
 ---
 # Source: datadog/templates/cluster-agent-rbac.yaml
 apiVersion: "rbac.authorization.k8s.io/v1"
 kind: ClusterRoleBinding
 metadata:
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -267,7 +278,7 @@ apiVersion: "rbac.authorization.k8s.io/v1"
 kind: Role
 metadata:
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -284,7 +295,7 @@ apiVersion: "rbac.authorization.k8s.io/v1"
 kind: RoleBinding
 metadata:
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm

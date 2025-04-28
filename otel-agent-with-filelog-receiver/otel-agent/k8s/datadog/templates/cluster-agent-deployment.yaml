@@ -6,7 +6,7 @@ metadata:
   name: otel-agent-datadog-cluster-agent
   namespace: demo
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -36,15 +36,15 @@ spec:
         
       name: otel-agent-datadog-cluster-agent
       annotations:
-        checksum/clusteragent_token: 2db2ed24150dd7fb2fac0a1e8b9407bf620742801edea77717478d5cd6e613ad
-        checksum/clusteragent-configmap: 3a5ec4beddff8b171cc91ed1f304e909ded6bad4a2ef3fbecf8a555353a6603a
-        checksum/install_info: fc5d5644f0b10f2365ce82c224654ec51d10db0a9f44c581cbc2db061e7132a2
+        checksum/clusteragent_token: 559417b21740530f821651074f79816b27d1b3d17ccf70f98cc7ba9128dd5e0b
+        checksum/clusteragent-configmap: da847c4ee3c53e93881a79486e1ac3e736a2563f69b5249d0ebfa2270b4fe29b
+        checksum/install_info: 0f7bb4eade598e93d57b0697280367242e5c206a6a42fb6e6125ea5031e0ba60
     spec:
       serviceAccountName: otel-agent-datadog-cluster-agent
       automountServiceAccountToken: true
       initContainers:
       - name: init-volume
-        image: "gcr.io/datadoghq/cluster-agent:7.61.0"
+        image: "gcr.io/datadoghq/cluster-agent:7.64.1"
         imagePullPolicy: IfNotPresent
         command:
           - cp
@@ -57,7 +57,7 @@ spec:
             mountPath: /opt/datadog-agent
       containers:
       - name: cluster-agent
-        image: "gcr.io/datadoghq/cluster-agent:7.61.0"
+        image: "gcr.io/datadoghq/cluster-agent:7.64.1"
         imagePullPolicy: IfNotPresent
         resources:
           {}
@@ -89,6 +89,8 @@ spec:
                 key: api-key
                 optional: true
           
+          - name: DD_CLUSTER_NAME
+            value: "krlv-opw"
           - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
             value: '{"app":"kube_app","release":"helm_release"}'
           - name: KUBERNETES

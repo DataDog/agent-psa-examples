@@ -6,7 +6,7 @@ metadata:
   name: otel-agent-datadog
   namespace: demo
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -30,12 +30,12 @@ spec:
         
       name: otel-agent-datadog
       annotations:
-        checksum/clusteragent_token: 5856ce20f7eb17cda025aab72566fe11397c5c47c9e1b31cd590331352297a79
-        checksum/install_info: fc5d5644f0b10f2365ce82c224654ec51d10db0a9f44c581cbc2db061e7132a2
+        checksum/clusteragent_token: 65e50a85c87e514c8fe826630b730e6f1f3fa43456f3542ce4fceeeb7554a269
+        checksum/install_info: 0f7bb4eade598e93d57b0697280367242e5c206a6a42fb6e6125ea5031e0ba60
         checksum/autoconf-config: 74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
         checksum/confd-config: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
         checksum/checksd-config: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
-        checksum/otel-config: cdb3f37170b69ff44f1424e803150c2399280311da1564db589c5db9185d5e03
+        checksum/otel-config: 4171fbac53b1f30c80b1eb502e0aa8729711c9fb3b5cb4e8a402605d00f97eb3
         container.apparmor.security.beta.kubernetes.io/system-probe: unconfined
     spec:
       
@@ -44,7 +44,7 @@ spec:
       hostPID: true
       containers:
       - name: agent
-        image: "public.ecr.aws/datadog/agent:7.61.0-ot-beta"
+        image: "public.ecr.aws/datadog/agent:7.64.3-ot-beta"
         imagePullPolicy: Always
         command: ["agent", "run"]
         
@@ -65,6 +65,8 @@ spec:
           - name: DD_AUTH_TOKEN_FILE_PATH
             value: /etc/datadog-agent/auth/token
           
+          - name: DD_CLUSTER_NAME
+            value: "krlv-opw"
           - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
             value: '{"app":"kube_app","release":"helm_release"}'
           - name: KUBERNETES
@@ -81,10 +83,13 @@ spec:
                 fieldPath: status.hostIP
           - name: DD_KUBELET_TLS_VERIFY
             value: "false"
-          - name: DD_CONTAINER_INCLUDE_LOGS
-            value: "name:ddlogger"
-          - name: DD_CONTAINER_EXCLUDE_LOGS
-            value: "name:.*"
+          - name: DD_ENV
+            value: "demo"
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
           - name: DD_OTLP_CONFIG_LOGS_ENABLED
             value: "false"
           
@@ -100,6 +105,10 @@ spec:
             value: "false"
           - name: DD_PROCESS_CONFIG_RUN_IN_CORE_AGENT_ENABLED
             value: "false"
+          - name: DD_AGENT_IPC_PORT
+            value: "5009"
+          - name: DD_AGENT_IPC_CONFIG_REFRESH_INTERVAL
+            value: "60"
           - name: DD_LOG_LEVEL
             value: "info"
           - name: DD_DOGSTATSD_PORT
@@ -119,10 +128,31 @@ spec:
                   key: token
           - name: DD_APM_ENABLED
             value: "true"
+          - name: DD_APM_NON_LOCAL_TRAFFIC
+            value: "true"
+          - name: DD_APM_RECEIVER_PORT
+            value: "8126"
+          - name: DD_APM_RECEIVER_SOCKET
+            value: "/var/run/datadog/apm.socket"
+          - name: DD_INSTRUMENTATION_INSTALL_TIME
+            valueFrom:
+              configMapKeyRef:
+                name: otel-agent-datadog-kpi-telemetry-configmap
+                key: install_time
+          - name: DD_INSTRUMENTATION_INSTALL_ID
+            valueFrom:
+              configMapKeyRef:
+                name: otel-agent-datadog-kpi-telemetry-configmap
+                key: install_id
+          - name: DD_INSTRUMENTATION_INSTALL_TYPE
+            valueFrom:
+              configMapKeyRef:
+                name: otel-agent-datadog-kpi-telemetry-configmap
+                key: install_type
           - name: DD_LOGS_ENABLED
-            value: "true"
+            value: "false"
           - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
-            value: "true"
+            value: "false"
           - name: DD_LOGS_CONFIG_K8S_CONTAINER_USE_FILE
             value: "true"
           - name: DD_LOGS_CONFIG_AUTO_MULTI_LINE_DETECTION
@@ -136,7 +166,7 @@ spec:
           - name: DD_IGNORE_AUTOCONF
             value: "kubernetes_state"
           - name: DD_CONTAINER_LIFECYCLE_ENABLED
-            value: "true"  
+            value: "true"
           - name: DD_ORCHESTRATOR_EXPLORER_ENABLED
             value: "true"
           - name: DD_EXPVAR_PORT
@@ -148,6 +178,12 @@ spec:
           - name: DD_KUBELET_CORE_CHECK_ENABLED
             value: "true"
           - name: DD_OTELCOLLECTOR_ENABLED
+            value: "true"
+          - name: DD_KUBERNETES_KUBELET_PODRESOURCES_SOCKET
+            value: "/var/lib/kubelet/pod-resources/kubelet.sock"
+          - name: DD_SYSTEM_PROBE_ENABLED
+            value: "true"
+          - name: DD_SYSTEM_PROBE_NETWORK_ENABLED
             value: "true"        
         volumeMounts:
           - name: logdatadog
@@ -194,22 +230,6 @@ spec:
             mountPath: /host/sys/fs/cgroup
             mountPropagation: None
             readOnly: true
-          - name: pointerdir
-            mountPath: /opt/datadog-agent/run
-            mountPropagation: None
-            readOnly: false # Need RW for logs pointer
-          - name: logpodpath
-            mountPath: /var/log/pods
-            mountPropagation: None
-            readOnly: true
-          - name: logscontainerspath
-            mountPath: /var/log/containers
-            mountPropagation: None
-            readOnly: true
-          - name: logdockercontainerpath
-            mountPath: /var/lib/docker/containers
-            mountPropagation: None
-            readOnly: true
         livenessProbe:
           failureThreshold: 6
           httpGet:
@@ -241,7 +261,7 @@ spec:
           successThreshold: 1
           timeoutSeconds: 5
       - name: trace-agent
-        image: "public.ecr.aws/datadog/agent:7.61.0-ot-beta"
+        image: "public.ecr.aws/datadog/agent:7.64.3-ot-beta"
         imagePullPolicy: Always
         command: ["trace-agent", "-config=/etc/datadog-agent/datadog.yaml"]  
         resources:
@@ -262,6 +282,8 @@ spec:
           - name: DD_AUTH_TOKEN_FILE_PATH
             value: /etc/datadog-agent/auth/token
           
+          - name: DD_CLUSTER_NAME
+            value: "krlv-opw"
           - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
             value: '{"app":"kube_app","release":"helm_release"}'
           - name: KUBERNETES
@@ -278,10 +300,13 @@ spec:
                 fieldPath: status.hostIP
           - name: DD_KUBELET_TLS_VERIFY
             value: "false"
-          - name: DD_CONTAINER_INCLUDE_LOGS
-            value: "name:ddlogger"
-          - name: DD_CONTAINER_EXCLUDE_LOGS
-            value: "name:.*"
+          - name: DD_ENV
+            value: "demo"
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
           - name: DD_OTLP_CONFIG_LOGS_ENABLED
             value: "false"
           
@@ -359,7 +384,7 @@ spec:
             port: 8126
           timeoutSeconds: 5
       - name: process-agent
-        image: "public.ecr.aws/datadog/agent:7.61.0-ot-beta"
+        image: "public.ecr.aws/datadog/agent:7.64.3-ot-beta"
         imagePullPolicy: Always
         command: ["process-agent", "--config=/etc/datadog-agent/datadog.yaml"]  
         resources:
@@ -375,6 +400,8 @@ spec:
           - name: DD_AUTH_TOKEN_FILE_PATH
             value: /etc/datadog-agent/auth/token
           
+          - name: DD_CLUSTER_NAME
+            value: "krlv-opw"
           - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
             value: '{"app":"kube_app","release":"helm_release"}'
           - name: KUBERNETES
@@ -391,10 +418,13 @@ spec:
                 fieldPath: status.hostIP
           - name: DD_KUBELET_TLS_VERIFY
             value: "false"
-          - name: DD_CONTAINER_INCLUDE_LOGS
-            value: "name:ddlogger"
-          - name: DD_CONTAINER_EXCLUDE_LOGS
-            value: "name:.*"
+          - name: DD_ENV
+            value: "demo"
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
           - name: DD_OTLP_CONFIG_LOGS_ENABLED
             value: "false"
           
@@ -474,7 +504,7 @@ spec:
             subPath: system-probe.yaml
             readOnly: true
       - name: system-probe
-        image: "public.ecr.aws/datadog/agent:7.61.0-ot-beta"
+        image: "public.ecr.aws/datadog/agent:7.64.3-ot-beta"
         imagePullPolicy: Always
         
         securityContext:
@@ -493,7 +523,7 @@ spec:
           seccompProfile:
             type: Localhost
             localhostProfile: system-probe
-        command: ["/opt/datadog-agent/embedded/bin/system-probe", "--config=/etc/datadog-agent/system-probe.yaml"]
+        command: ["system-probe", "--config=/etc/datadog-agent/system-probe.yaml"]
         env:
           - name: DD_API_KEY
             valueFrom:
@@ -505,6 +535,8 @@ spec:
           - name: DD_AUTH_TOKEN_FILE_PATH
             value: /etc/datadog-agent/auth/token
           
+          - name: DD_CLUSTER_NAME
+            value: "krlv-opw"
           - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
             value: '{"app":"kube_app","release":"helm_release"}'
           - name: KUBERNETES
@@ -521,10 +553,13 @@ spec:
                 fieldPath: status.hostIP
           - name: DD_KUBELET_TLS_VERIFY
             value: "false"
-          - name: DD_CONTAINER_INCLUDE_LOGS
-            value: "name:ddlogger"
-          - name: DD_CONTAINER_EXCLUDE_LOGS
-            value: "name:.*"
+          - name: DD_ENV
+            value: "demo"
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
           - name: DD_OTLP_CONFIG_LOGS_ENABLED
             value: "false"
           
@@ -583,9 +618,13 @@ spec:
             mountPath: /host/etc/lsb-release
             readOnly: true
       - name: otel-agent
-        image: "public.ecr.aws/datadog/agent:7.61.0-ot-beta"
+        image: "public.ecr.aws/datadog/agent:7.64.3-ot-beta"
         imagePullPolicy: Always
-        command: ["otel-agent", "--config=/etc/otel-agent/otel-config.yaml", "--core-config=/etc/datadog-agent/datadog.yaml"]  
+        command:
+          - "otel-agent"
+          - "--config=/etc/otel-agent/otel-config.yaml"
+          - "--core-config=/etc/datadog-agent/datadog.yaml"
+          - "--sync-delay=30s"  
         resources:
           {}
         ports:
@@ -608,6 +647,8 @@ spec:
           - name: DD_AUTH_TOKEN_FILE_PATH
             value: /etc/datadog-agent/auth/token
           
+          - name: DD_CLUSTER_NAME
+            value: "krlv-opw"
           - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
             value: '{"app":"kube_app","release":"helm_release"}'
           - name: KUBERNETES
@@ -624,10 +665,13 @@ spec:
                 fieldPath: status.hostIP
           - name: DD_KUBELET_TLS_VERIFY
             value: "false"
-          - name: DD_CONTAINER_INCLUDE_LOGS
-            value: "name:ddlogger"
-          - name: DD_CONTAINER_EXCLUDE_LOGS
-            value: "name:.*"
+          - name: DD_ENV
+            value: "demo"
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
           - name: DD_OTLP_CONFIG_LOGS_ENABLED
             value: "false"
           
@@ -640,6 +684,10 @@ spec:
               secretKeyRef:
                   name: otel-agent-datadog-cluster-agent
                   key: token
+          - name: DD_AGENT_IPC_PORT
+            value: "5009"
+          - name: DD_AGENT_IPC_CONFIG_REFRESH_INTERVAL
+            value: "60"
           
           - name: DD_LOG_LEVEL
             value: "info"        
@@ -670,12 +718,6 @@ spec:
           - name: dsdsocket
             mountPath: /var/run/datadog
             readOnly: true
-
-          - name: runtimesocketdir
-            mountPath: /host/var/run
-            mountPropagation: None
-            readOnly: true
-
           - name: logpodpath
             mountPath: /var/log/pods
             mountPropagation: None
@@ -689,9 +731,14 @@ spec:
             mountPropagation: None
             readOnly: true
           
+          - name: runtimesocketdir
+            mountPath: /host/var/run
+            mountPropagation: None
+            readOnly: true
+          
       initContainers:
       - name: init-volume  
-        image: "public.ecr.aws/datadog/agent:7.61.0-ot-beta"
+        image: "public.ecr.aws/datadog/agent:7.64.3-ot-beta"
         imagePullPolicy: Always
         command: ["bash", "-c"]
         args:
@@ -703,7 +750,7 @@ spec:
         resources:
           {}
       - name: init-config  
-        image: "public.ecr.aws/datadog/agent:7.61.0-ot-beta"
+        image: "public.ecr.aws/datadog/agent:7.64.3-ot-beta"
         imagePullPolicy: Always
         command:
           - bash
@@ -741,6 +788,8 @@ spec:
           - name: DD_AUTH_TOKEN_FILE_PATH
             value: /etc/datadog-agent/auth/token
           
+          - name: DD_CLUSTER_NAME
+            value: "krlv-opw"
           - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
             value: '{"app":"kube_app","release":"helm_release"}'
           - name: KUBERNETES
@@ -757,10 +806,13 @@ spec:
                 fieldPath: status.hostIP
           - name: DD_KUBELET_TLS_VERIFY
             value: "false"
-          - name: DD_CONTAINER_INCLUDE_LOGS
-            value: "name:ddlogger"
-          - name: DD_CONTAINER_EXCLUDE_LOGS
-            value: "name:.*"
+          - name: DD_ENV
+            value: "demo"
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
           - name: DD_OTLP_CONFIG_LOGS_ENABLED
             value: "false"
           
@@ -769,7 +821,7 @@ spec:
           
       - name: seccomp-setup
         
-        image: "public.ecr.aws/datadog/agent:7.61.0-ot-beta"
+        image: "public.ecr.aws/datadog/agent:7.64.3-ot-beta"
         imagePullPolicy: Always
         command:
         - cp
