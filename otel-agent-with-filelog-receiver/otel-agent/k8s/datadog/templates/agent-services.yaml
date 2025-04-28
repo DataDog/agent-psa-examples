@@ -6,7 +6,7 @@ metadata:
   name: otel-agent-datadog-cluster-agent
   namespace: demo
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -28,10 +28,10 @@ metadata:
   namespace: demo
   labels:
     app: "otel-agent-datadog"
-    chart: "datadog-3.88.1"
+    chart: "datadog-3.110.14"
     release: "otel-agent"
     heritage: "Helm"
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -54,10 +54,10 @@ metadata:
   namespace: demo
   labels:
     app: "otel-agent-datadog"
-    chart: "datadog-3.88.1"
+    chart: "datadog-3.110.14"
     release: "otel-agent"
     heritage: "Helm"
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm

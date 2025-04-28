@@ -6,7 +6,7 @@ metadata:
   name: otel-agent-datadog-cluster-agent-confd
   namespace: demo
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -45,8 +45,10 @@ data:
           {}
         annotations_as_tags:
           {}
+  
   kubernetes_apiserver.yaml: |-
     init_config:
     instances:
-      - filtering_enabled: false
+      -
+        filtering_enabled: false
         unbundle_events: false

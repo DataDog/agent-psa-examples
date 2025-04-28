@@ -6,7 +6,7 @@ metadata:
   name: otel-agent-datadog-system-probe-config
   namespace: demo
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -35,6 +35,12 @@ data:
       conntrack_init_timeout: 10s
     service_monitoring_config:
       enabled: false
+      tls:
+    traceroute:
+      enabled: false
+    gpu_monitoring:
+      enabled: false
+      configure_cgroup_perms: false
     runtime_security_config:
       enabled: false
       fim_enabled: false
@@ -70,7 +76,7 @@ metadata:
   name: otel-agent-datadog-security
   namespace: demo
   labels:
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
@@ -96,6 +102,7 @@ data:
             "clone",
             "clone3",
             "close",
+            "close_range",
             "connect",
             "copy_file_range",
             "creat",
@@ -183,6 +190,8 @@ data:
             "openat2",
             "pause",
             "perf_event_open",
+            "pidfd_open",
+            "pidfd_send_signal",
             "pipe",
             "pipe2",
             "poll",
@@ -246,6 +255,7 @@ data:
             "symlinkat",
             "sysinfo",
             "tgkill",
+            "tkill",
             "umask",
             "uname",
             "unlink",

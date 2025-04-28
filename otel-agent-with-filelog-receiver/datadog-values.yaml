@@ -1,23 +1,9 @@
 agents:
   image:
     repository: public.ecr.aws/datadog/agent
-    tag: 7.61.0-ot-beta
+    tag: 7.64.3-ot-beta
     pullPolicy: Always
     doNotCheckTag: true
-
-  volumeMounts:
-    - name: logpodpath
-      mountPath: /var/log/pods
-      mountPropagation: None
-      readOnly: true
-    - name: logscontainerspath
-      mountPath: /var/log/containers
-      mountPropagation: None
-      readOnly: true
-    - name: logdockercontainerpath
-      mountPath: /var/lib/docker/containers
-      mountPropagation: None
-      readOnly: true
 
 datadog:
   site: datadoghq.com
@@ -36,6 +22,8 @@ datadog:
       - containerPort: "4318"
         hostPort: "4318"
         name: otel-http
+    logs:
+      enabled: true
 
   apm:
     portEnabled: true
@@ -59,7 +47,7 @@ datadog:
 
   env:
     - name: DD_ENV
-      value: staging
+      value: demo
     - name: K8S_NODE_NAME
       valueFrom:
         fieldRef:

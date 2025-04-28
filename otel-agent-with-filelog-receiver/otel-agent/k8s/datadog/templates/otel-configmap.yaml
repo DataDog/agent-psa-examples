@@ -7,13 +7,13 @@ metadata:
   namespace: demo
   labels:
     
-    helm.sh/chart: 'datadog-3.88.1'
+    helm.sh/chart: 'datadog-3.110.14'
     app.kubernetes.io/name: "otel-agent-datadog"
     app.kubernetes.io/instance: "otel-agent"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/version: "7"
   annotations:
-    checksum/otel-config: fc5d5644f0b10f2365ce82c224654ec51d10db0a9f44c581cbc2db061e7132a2
+    checksum/otel-config: 0f7bb4eade598e93d57b0697280367242e5c206a6a42fb6e6125ea5031e0ba60
 data: 
   otel-config.yaml:     |
         receivers:
@@ -34,6 +34,9 @@ data:
           filelog:
             exclude:
               - /var/log/pods/*/otel-agent/*.log
+              - /var/log/pods/*/agent/*.log
+              - /var/log/pods/*/trace-agent/*.log
+              - /var/log/pods/*/process-agent/*.log
             include:
               - /var/log/pods/*/*/*.log
             include_file_name: false
@@ -64,9 +67,6 @@ data:
         connectors:
           datadog/connector:
             traces:
-              compute_top_level_by_span_kind: true
-              peer_tags_aggregation: true
-              compute_stats_by_span_kind: true
         service:
           telemetry:
             logs:

@@ -1,31 +1,9 @@
 agents:
   image:
     repository: public.ecr.aws/datadog/agent
-    tag: 7.61.0-ot-beta
+    tag: 7.64.3-ot-beta
     pullPolicy: Always
     doNotCheckTag: true
-
-# Setting `datadog.logs.enabled` to `true` implicitly adds /var/log/pods and /var/lib/docker/containers volumeMounts
-# to the core agent container volume mounts:
-# see https://github.com/DataDog/helm-charts/blob/main/charts/datadog/templates/_container-agent.yaml#L267-L286
-# see https://github.com/DataDog/helm-charts/blob/main/charts/datadog/templates/_daemonset-volumes-linux.yaml#L201-L216
-#
-# Explicitly defining these mounts as .Values.agents.volumeMounts will lead to duplicates and Helm errors.
-#  volumes:
-#    - name: varlogpods
-#      hostPath:
-#        path: /var/log/pods
-#    - name: varlibdockercontainers
-#      hostPath:
-#        path: /var/lib/docker/containers
-#
-#  volumeMounts:
-#    - name: varlogpods
-#      mountPath: /var/log/pods
-#      readOnly: true
-#    - name: varlibdockercontainers
-#      mountPath: /var/lib/docker/containers
-#      readOnly: true
 
 datadog:
   site: datadoghq.com
@@ -42,6 +20,8 @@ datadog:
       - containerPort: "4318"
         hostPort: "4318"
         name: otel-http
+    logs:
+      enabled: true
 
   apm:
     portEnabled: true
@@ -67,3 +47,12 @@ datadog:
   podLabelsAsTags:
     app: kube_app
     release: helm_release
+
+  env:
+    - name: DD_ENV
+      value: demo
+    - name: K8S_NODE_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: spec.nodeName

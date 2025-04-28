@@ -49,38 +49,9 @@ as a demo app. To install it run:
 kubectl apply -f ./logger/k8s/deployment.yaml
 ```
 
-### 5. Add volumes and mounts containers logs volumes
+### 5. Add `filelog` receiver to OpenTelemetry Collector config
 
-1. Disable logging in Datadog agent 
-2. Add volumes and volumeMounts for `/var/log/pods` and `/var/lib/docker/containers` to all agents' containers:
-
-```yaml
-# datadog-values.yaml
-agents:
-  ...
-  volumeMounts:
-    - name: logpodpath
-      mountPath: /var/log/pods
-      mountPropagation: None
-      readOnly: true
-    - name: logscontainerspath
-      mountPath: /var/log/containers
-      mountPropagation: None
-      readOnly: true
-    - name: logdockercontainerpath
-      mountPath: /var/lib/docker/containers
-      mountPropagation: None
-      readOnly: true
-
-datadog:
-  ...
-  logs:
-    enabled: false
-```
-
-### 6. Add `filelog` receiver to OpenTelemetry Collector config
-
-Define `filelog` reciever in the OTel collector config as follows:
+1. Define `filelog` receiver in the OTel collector config as follows:
 
 ```yaml
 # collector-config.yaml
@@ -112,11 +83,24 @@ service:
       exporters: [debug, datadog]
 ```
 
+2. Enable logs collection in OTel Collector:
+
+```yaml
+# datadog-values.yaml
+datadog:
+  ...
+  otelCollector:
+    enabled: true
+    logs:
+      enabled: true
+    ...
+```
+
 Check [Logs Explorer](https://app.datadoghq.com/logs) to confirm containers logs are delivered and indexed:
 
 ![Container logs in Logs Explorer](./assets/2025-01-23_23-49-16.png)
 
-### 7. (Optional) Exclude `otel-agent` container logs
+### 6. (Optional) Exclude `otel-agent` container logs
 
 To prevent logs looping, exclude logs from the collector's containers:
 
@@ -143,7 +127,7 @@ receivers:
 
 ## Enable logs collection in the Datadog Agent with Embedded OpenTelemetry Collector
 
-### 8. Enable logs collection in the Datadog Agent
+### 7. Enable logs collection in the Datadog Agent
 
 ```yaml
 # datadog-values.with-logs.yaml
@@ -165,68 +149,4 @@ datadog:
 >   containerExcludeLogs: "name:.*"
 >   containerIncludeLogs: "name:checkout name:payment"
 > ```
-
-
-### 9. Explicitly add volume mounts required for `filelog` receiver
-
-> [!WARNING]
-> Datadog Agent Helm chart doesn't support additional volume mounts for the `otel-agent` (as of
-> [v3.89](https://github.com/DataDog/helm-charts/blob/main/charts/datadog/CHANGELOG.md#3890)). To mount required
-> by `filelog` receiver volumes, we had to take output of `helm template` and perform "post-processing" before installing
-> manifests.
-
-Generate manifests from Helm chart:
-
-```shell
-helm template otel-agent datadog/datadog \
-  --values datadog-values.with-logs.yaml \
-  --set-file datadog.otelCollector.config=collector-config.yaml \
-  --namespace demo \
-  --output-dir ./otel-agent/k8s
-```
-
-Manually add `/var/log/pods`, `/var/log/containers` and `/var/lib/docker/containers` volume mounts to `otel-agent` 
-container in the DaemonSet manifest file:
-
-```yaml
-# otel-agent/k8s/datadog/templates/daemonset.yaml
----
-# Source: datadog/templates/daemonset.yaml
-apiVersion: apps/v1
-kind: DaemonSet
-...
-spec:
-  ...
-  template:
-    ...
-    spec:
-      ...
-      containers:
-      ...
-      - name: otel-agent
-        ...      
-        volumeMounts:
-          ...
-          - name: logpodpath
-            mountPath: /var/log/pods
-            mountPropagation: None
-            readOnly: true
-          - name: logscontainerspath
-            mountPath: /var/log/containers
-            mountPropagation: None
-            readOnly: true
-          - name: logdockercontainerpath
-            mountPath: /var/lib/docker/containers
-            mountPropagation: None
-            readOnly: true
-          ...
-```
-
-### 10. Install Agent using post-processed manifests
-
-Apply Kubernetes manifests:
-
-```shell
-kubectl apply -R -f ./otel-agent/k8s/
-```
 

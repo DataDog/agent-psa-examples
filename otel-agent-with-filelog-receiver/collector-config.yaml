@@ -16,6 +16,9 @@ receivers:
   filelog:
     exclude:
       - /var/log/pods/*/otel-agent/*.log
+      - /var/log/pods/*/agent/*.log
+      - /var/log/pods/*/trace-agent/*.log
+      - /var/log/pods/*/process-agent/*.log
     include:
       - /var/log/pods/*/*/*.log
     include_file_name: false
@@ -39,14 +42,6 @@ processors:
     cardinality: 2
   batch:
     timeout: 10s
-  filter/datadog:
-    error_mode: ignore
-    logs:
-      log_record:
-        - 'IsMatch("${env:DD_CLUSTER_NAME}", "infra")'
-        - |
-          resource.attributes["k8s.container.name"] != "logger" and
-          resource.attributes["k8s.container.name"] != "ddlogger"
   memory_limiter:
     check_interval: 5s
     limit_percentage: 80
@@ -54,9 +49,6 @@ processors:
 connectors:
   datadog/connector:
     traces:
-      compute_top_level_by_span_kind: true
-      peer_tags_aggregation: true
-      compute_stats_by_span_kind: true
 service:
   telemetry:
     logs:
@@ -72,5 +64,5 @@ service:
       exporters: [debug, datadog]
     logs:
       receivers: [filelog, otlp]
-      processors: [memory_limiter, infraattributes, filter/datadog, batch]
+      processors: [memory_limiter, infraattributes, batch]
       exporters: [debug, datadog]
