@@ -1,0 +1,94 @@
+agents:
+  image:
+    repository: public.ecr.aws/datadog/agent
+    tag: 7.71.2
+    pullPolicy: Always
+    doNotCheckTag: true
+
+datadog:
+  site: us5.datadoghq.com
+  apiKeyExistingSecret: datadog-secret
+  appKeyExistingSecret: datadog-secret
+  logLevel: info
+  clusterName: krlv-ddot
+
+  otelCollector:
+    enabled: true
+    ports:
+      - containerPort: "4317"
+        hostPort: "4317"
+        name: otel-grpc
+      - containerPort: "4318"
+        hostPort: "4318"
+        name: otel-http
+    config: |
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+        
+        prometheus:
+          config:
+            scrape_configs:
+              - job_name: "otelcol"
+                scrape_interval: 10s
+                static_configs:
+                  - targets: ["0.0.0.0:8888"]
+      
+      exporters:
+        datadog:
+          api:
+            key: ${env:DD_API_KEY}
+            site: ${env:DD_SITE}
+        
+        otlphttp:
+          endpoint: https://your-backend.example.com/v1/traces
+          headers:
+            authorization: "Bearer <YOUR_API_TOKEN>"
+          compression: gzip
+      
+      connectors:
+        datadog/connector:
+          traces:
+      
+      processors:
+        batch:
+          timeout: 10s
+        
+        infraattributes:
+          cardinality: 2
+      
+      service:
+        pipelines:
+          traces:
+            receivers: [otlp]
+            processors: [batch, infraattributes]
+            exporters: [datadog/connector, datadog]
+          
+          metrics:
+            receivers: [otlp, datadog/connector, prometheus]
+            processors: [batch, infraattributes]
+            exporters: [datadog]
+          
+          logs:
+            receivers: [otlp]
+            processors: [batch, infraattributes]
+            exporters: [datadog]
+
+  processAgent:
+    enabled: true
+    processCollection: true
+  networkMonitoring:
+    enabled: true
+  kubelet:
+    tlsVerify: false
+  podLabelsAsTags:
+    app: kube_app
+    release: helm_release
+
+  env:
+    - name: DD_ENV
+      value: calendar
