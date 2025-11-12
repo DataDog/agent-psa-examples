@@ -6,11 +6,11 @@ metadata:
 spec:
   global:
     # Update with your cluster name
-    clusterName: krlv-ddot
+    clusterName: <YOUR_CLUSTER_NAME>
     
     # Update with your Datadog site
     # Examples: datadoghq.com, us3.datadoghq.com, us5.datadoghq.com, datadoghq.eu, ap1.datadoghq.com
-    site: datadoghq.com
+    site: <YOUR_DATADOG_SITE>
     
     # Reference to the secret containing Datadog API key
     credentials:
