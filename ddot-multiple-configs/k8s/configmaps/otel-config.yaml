@@ -1,0 +1,193 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-configs
+  namespace: ddot-demo
+  labels:
+    app: datadog-agent
+    component: otel-collector
+  annotations:
+    description: "Multiple OTEL Collector configurations that are merged by the Collector"
+data:
+  # Base OTEL Collector Configuration
+  # This is similar to the default configuration included with the Datadog Operator
+  # Reference: https://github.com/DataDog/datadog-operator/blob/main/internal/controller/datadogagent/feature/otelcollector/defaultconfig/defaultconfig.go
+  # It provides standard DDOT functionality: receiving OTLP telemetry and sending to Datadog
+  otel-config-base.yaml: |
+    receivers:
+      # OTLP receiver for OpenTelemetry telemetry
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      
+      # Prometheus receiver for Collector health metrics
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: "otelcol"
+              scrape_interval: 10s
+              static_configs:
+                - targets: ["0.0.0.0:8888"]
+    
+    exporters:
+      # Datadog exporter - sends all telemetry to Datadog
+      datadog:
+        api:
+          key: ${env:DD_API_KEY}
+          site: ${env:DD_SITE}
+    
+    connectors:
+      # Datadog connector computes APM statistics from traces
+      # These stats are used in the Datadog APM UI
+      datadog/connector:
+        traces:
+    
+    processors:
+      # Batch processor - batches telemetry for efficient export
+      batch:
+        timeout: 10s
+        send_batch_size: 1024
+        send_batch_max_size: 2048
+      
+      # Datadog infrastructure attributes processor
+      # Enriches telemetry with infrastructure tags from the Datadog Agent
+      # This is CRITICAL for correlating telemetry with infrastructure in Datadog UI
+      # 
+      # Required resource attributes from your application:
+      # - k8s.pod.uid (most important for correlation)
+      # - k8s.node.name
+      # - k8s.pod.name
+      # - k8s.namespace.name
+      # - k8s.container.name
+      infraattributes:
+        cardinality: 2  # 0=low, 1=orchestrator, 2=high (recommended for full tags)
+      
+      # Memory limiter - prevents OOM by applying back pressure
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+    
+    service:
+      # Telemetry for the Collector itself
+      telemetry:
+        logs:
+          level: info
+        metrics:
+          level: detailed
+      
+      pipelines:
+        # Traces pipeline
+        # Flow: OTLP Receiver → Processors → [Datadog Connector + Datadog Exporter]
+        # 
+        # The datadog/connector computes APM statistics and outputs them to the
+        # metrics pipeline. Both the connector and datadog exporter receive traces.
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, infraattributes]
+          exporters: [datadog/connector, datadog]
+        
+        # Metrics pipeline
+        # Flow: [OTLP + Prometheus + Connector] → Processors → Datadog Exporter
+        # 
+        # Three sources of metrics:
+        # 1. OTLP receiver: Application metrics
+        # 2. Prometheus receiver: Collector health metrics
+        # 3. Datadog connector: APM statistics from traces
+        metrics:
+          receivers: [otlp, datadog/connector, prometheus]
+          processors: [memory_limiter, batch, infraattributes]
+          exporters: [datadog]
+        
+        # Logs pipeline
+        # Flow: OTLP Receiver → Processors → Datadog Exporter
+        # 
+        # Note: This is for logs sent via OTLP from your application
+        # Kubernetes pod logs are collected by the Datadog Agent separately
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, infraattributes]
+          exporters: [datadog]
+  
+  # Dual Shipping Configuration Extension
+  # This configuration is MERGED with the base configuration above by the OTEL Collector
+  # It adds an additional OTLP exporter and overrides pipelines to enable dual shipping
+  # 
+  # After merging by the Collector:
+  # - All base receivers, processors, and connectors remain unchanged
+  # - The new OTLP exporter is added
+  # - Pipelines are overridden to include both exporters (Datadog + OTLP)
+  otel-config-dualship.yaml: |
+    exporters:
+      # OTLP HTTP exporter - sends telemetry to a secondary observability backend
+      # This is MERGED with the base config's exporters
+      otlphttp:
+        # Update this endpoint for your secondary backend
+        endpoint: https://your-backend.example.com
+        
+        # Authentication headers - update for your backend
+        headers:
+          # Common authentication patterns:
+          # - Bearer token: "Authorization: Bearer YOUR_TOKEN"
+          # - API key: "X-API-Key: YOUR_API_KEY"
+          # - Basic auth: "Authorization: Basic BASE64_ENCODED_CREDENTIALS"
+          authorization: "Bearer YOUR_API_TOKEN"
+        
+        # Compression for network efficiency
+        compression: gzip
+        
+        # Optional: Configure TLS
+        # tls:
+        #   insecure: false
+        #   ca_file: /path/to/ca.crt
+        #   cert_file: /path/to/client.crt
+        #   key_file: /path/to/client.key
+        
+        # Optional: Timeout settings
+        # timeout: 30s
+        
+        # Optional: Retry configuration
+        # retry_on_failure:
+        #   enabled: true
+        #   initial_interval: 5s
+        #   max_interval: 30s
+        #   max_elapsed_time: 300s
+    
+    service:
+      pipelines:
+        # Traces pipeline override
+        # This REPLACES the traces pipeline from base config
+        # We add 'otlphttp' to exporters to enable dual shipping
+        traces:
+          receivers: [otlp]  # Same receivers as base
+          processors: [memory_limiter, batch, infraattributes]  # Same processors
+          exporters: [datadog/connector, datadog, otlphttp]  # + otlphttp added!
+        
+        # Metrics pipeline override
+        # This REPLACES the metrics pipeline from base config
+        # Add 'otlphttp' to exporters for dual shipping metrics
+        metrics:
+          receivers: [otlp, datadog/connector, prometheus]  # Same receivers
+          processors: [memory_limiter, batch, infraattributes]  # Same processors
+          exporters: [datadog, otlphttp]  # + otlphttp added!
+        
+        # Logs pipeline override
+        # This REPLACES the logs pipeline from base config
+        # Add 'otlphttp' to exporters for dual shipping logs
+        logs:
+          receivers: [otlp]  # Same receivers
+          processors: [memory_limiter, batch, infraattributes]  # Same processors
+          exporters: [datadog, otlphttp]  # + otlphttp added!
+    
+    # Note: After merging with base config, the final configuration will have:
+    # - All receivers from base (otlp, prometheus)
+    # - All processors from base (batch, infraattributes, memory_limiter)
+    # - All connectors from base (datadog/connector)
+    # - All exporters from BOTH configs (datadog + otlphttp)
+    # - Pipelines from THIS config (which include both exporters)
+    #
+    # Result: Telemetry is sent to BOTH Datadog and your secondary backend
+

@@ -1,0 +1,113 @@
+apiVersion: datadoghq.com/v2alpha1
+kind: DatadogAgent
+metadata:
+  name: datadog-agent
+  namespace: ddot-demo
+spec:
+  global:
+    # Update with your cluster name
+    clusterName: krlv-ddot
+    
+    # Update with your Datadog site
+    # Examples: datadoghq.com, us3.datadoghq.com, us5.datadoghq.com, datadoghq.eu, ap1.datadoghq.com
+    site: datadoghq.com
+    
+    # Reference to the secret containing Datadog API key
+    credentials:
+      apiSecret:
+        secretName: datadog-secret
+        keyName: api-key
+      appSecret:
+        secretName: datadog-secret
+        keyName: app-key
+
+  override:
+    # Node Agent configuration
+    nodeAgent:
+      # Use a recent Agent image with OTEL Collector support
+      image:
+        tag: "7.72.2-full"
+
+  # Enable Features
+  features:
+    # Enable APM (Application Performance Monitoring)
+    apm:
+      enabled: true
+    
+    # Enable Kubernetes orchestrator explorer
+    orchestratorExplorer:
+      enabled: true
+    
+    # Enable process discovery
+    processDiscovery:
+      enabled: true
+    
+    # Enable live process collection
+    liveProcessCollection:
+      enabled: true
+    
+    # Enable Universal Service Monitoring
+    usm:
+      enabled: true
+    
+    # Enable cluster checks
+    clusterChecks:
+      enabled: true
+    
+    # Enable and configure OpenTelemetry Collector
+    otelCollector:
+      enabled: true
+      
+      # Expose OTLP receiver ports
+      ports:
+        - containerPort: 4317
+          hostPort: 4317
+          name: otel-grpc
+          protocol: TCP
+        - containerPort: 4318
+          hostPort: 4318
+          name: otel-http
+          protocol: TCP
+      
+      # Configure OTEL Collector using multiple configurations
+      # This demonstrates the key feature: base config + override config
+      conf:
+        # Reference a ConfigMap with multiple configuration files
+        # The Operator loads these files and the OTEL Collector merges them
+        configMap:
+          name: otel-configs  # Name of the ConfigMap
+          # List of keys in the ConfigMap to load and pass to the Collector
+          items:
+            - key: otel-config-base.yaml      # Base configuration (loaded first)
+              path: otel-config-base.yaml
+            - key: otel-config-dualship.yaml  # Override configuration (loaded second)
+              path: otel-config-dualship.yaml
+        
+        # The order matters:
+        # 1. Base config is loaded first (standard DDOT setup)
+        # 2. Dualship config is loaded second and merged by the Collector (adds OTLP exporter)
+        # 3. Components are merged by name, pipelines are overridden
+        # 4. Result: Telemetry goes to both Datadog and secondary backend
+        
+        # Alternative: Inline configuration (commented out)
+        # Use this if you prefer to keep config inline instead of ConfigMap
+        # configData: |-
+        #   receivers:
+        #     otlp:
+        #       protocols:
+        #         grpc:
+        #           endpoint: 0.0.0.0:4317
+        #   ...
+
+        # Note: You can only use ONE method at a time:
+        # - Either configMap (for multiple merged configs) ← Recommended
+        # - Or configData (for single inline config)
+
+      # Optional: Configure resource limits for OTEL Collector container
+      # resources:
+      #   requests:
+      #     cpu: 100m
+      #     memory: 128Mi
+      #   limits:
+      #     cpu: 500m
+      #     memory: 512Mi
